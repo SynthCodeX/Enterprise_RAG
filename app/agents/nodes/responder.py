@@ -2,15 +2,13 @@ import logfire
 from tenacity import before_sleep_log, retry, stop_after_attempt, wait_exponential
 
 from app.agents.state import AgentState
-from app.config import settings
-from app.gateway import extract_cache_status, portkey_client
+from app.gateway import get_langchain_llm
 
 
 def generate_node(state: AgentState):
     """
     Synthesizes a response using both Documentation Context AND Conversation History.
-    Uses the native Portkey client (not LangChain) so we can read the
-    x-portkey-cache-status response header and surface Cache: Hit in the UI.
+    Uses the Portkey-backed LangChain LLM from app.gateway.
     """
     query = state["current_query"]
 
@@ -61,10 +59,9 @@ def generate_node(state: AgentState):
 
     with logfire.span("✍️ LLM Synthesis"):
         try:
-            response = _generate_response(prompt)
-            content = response.choices[0].message.content
-            cache_status = extract_cache_status(response)
-            is_cache_hit = cache_status == "HIT"
+            content = _generate_response(prompt)
+            # LangChain doesn't expose raw response headers, so cache status isn't readable here.
+            is_cache_hit = False
 
             if is_cache_hit:
                 logfire.info("⚡ Gateway Cache Hit — response served from Portkey cache.")
@@ -93,9 +90,7 @@ def generate_node(state: AgentState):
     reraise=True,
     before_sleep=before_sleep_log(logfire, "warning"),
 )
-def _generate_response(prompt: str):
-    """Call the LLM gateway with retry logic for transient failures."""
-    return portkey_client.chat.completions.create(
-        model=f"@{settings.PORTKEY_PRIMARY_SLUG}/gpt-5-mini",
-        messages=[{"role": "user", "content": prompt}],
-    )
+def _generate_response(prompt: str) -> str:
+    """Call the Portkey-backed LLM with retry logic for transient failures."""
+    llm = get_langchain_llm(feature="responder")
+    return llm.invoke(prompt).content

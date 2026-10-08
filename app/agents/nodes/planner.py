@@ -40,7 +40,8 @@ def planner_node(state: AgentState):
         decision = llm.invoke(prompt).content.strip()
         logfire.info(f"Intent identified: {decision}")
 
-    if decision == "CONVERSATIONAL":
+    if decision.strip("'\"` .").upper().startswith("CONVERSATIONAL"):
+        decision = "CONVERSATIONAL"
         return {
             "current_query": "CONVERSATIONAL",
             "status": "Handling conversationally (using memory)...",

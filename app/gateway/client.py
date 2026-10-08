@@ -9,7 +9,6 @@ from app.config import settings
 #     block_inline_config is enabled on the workspace).
 #   - We reference that config via the x-portkey-config-id header.
 #   - The inline config dict approach is disabled for this account, so all
-#     retry/fallback/cache behavior must be configured inside the Portkey UI.
 
 
 def _make_headers(feature: str = "rag") -> dict:
@@ -55,7 +54,7 @@ def get_langchain_llm(feature: str = "rag") -> ChatOpenAI:
     return ChatOpenAI(
         api_key=settings.PORTKEY_API_KEY,
         base_url=PORTKEY_GATEWAY_URL,
-        model=f"@{settings.PORTKEY_PRIMARY_SLUG}/gpt-5-mini",
+        model=f"@{settings.PORTKEY_PRIMARY_SLUG}/openai/gpt-oss-20b",
         default_headers=_make_headers(feature),
     )
 
@@ -89,3 +88,26 @@ def extract_cache_status(response) -> str:
                 if status:
                     return status.upper()
     return "MISS"
+
+
+def check_gemini_embedding(text: str = "What is a Kubernetes Pod?", dim: int = 768) -> tuple[bool, str]:
+    """
+    Embed one string with Gemini (gemini-embedding-2) and confirm the vector size.
+    Returns (ok, message). Calls Gemini directly - embeddings do not go through Portkey.
+    """
+    from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+    if not settings.GEMINI_API_KEY:
+        return False, "GEMINI_API_KEY is not set"
+    try:
+        model = GoogleGenerativeAIEmbeddings(
+            model="gemini-embedding-2",
+            google_api_key=settings.GEMINI_API_KEY,
+            output_dimensionality=dim,
+        )
+        vec = model.embed_query(text, output_dimensionality=dim)
+    except Exception as e:
+        return False, str(e)[:200]
+    if len(vec) != dim:
+        return False, f"got dim {len(vec)}, expected {dim}"
+    return True, f"dim={len(vec)}"

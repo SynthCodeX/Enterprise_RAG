@@ -28,7 +28,8 @@ langchain-google-vertexai   # Required shim for NeMo Guardrails internal import 
 langchain-community         # Community-contributed tools and loaders
 langchain-text-splitters    # Text splitters (recursive, token, markdown, HTML, code)
 langchain-experimental      # SemanticChunker
-langchain-openai            # OpenAI-compatible layer (used by Portkey gateway + guardrails)
+langchain-groq              # Direct Groq LLM (planner/responder)
+langchain-openai           # OpenAI-compatible layer (used by Portkey gateway + guardrails)
 pydantic>=2.0.0             # Data validation and settings management
 pydantic-settings           # Pydantic BaseSettings with dotenv support
 langchain-text-splitters    # Text splitters (recursive, token, markdown, HTML, code)

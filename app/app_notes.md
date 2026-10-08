@@ -18,3 +18,28 @@
 
 # services folder 
 embeddding - > used to create embedding vector out of chunks
+
+# commmand 
+uvicorn app.main_:app --reload --port 8000
+
+## streamlit
+streamlit run ui/app.py
+
+# Guardrails : (rails - rules and regularation)
+## NeMo Guardrails -> by nvidia : open source used in development
+ -  useing similarity for checking the intent of the query 
+ - if the question is a threat 
+ - "co" colang language by nvidia (neither english nor programming - little bit of both )
+ - we define a rail 
+    - define a user - give it a varaible name (eg ask offtopic)
+    - define a bot, - give it a variable name (eg refuse offtopic)
+    - define a flow - guard offtopic (if user is going offtopic then the bot can refuse offtopic)
+
+    - user - (give example )
+    - sentance embedding compare with define user example
+    - for similarity it uses faseembeder (vector stor)
+    - use ai to check if it offtopic
+
+- todo : vector store vs vector db
+## llama guardrain 
+## AWS Bedrock -> cloud based sits on top of llm - industry / production 

@@ -31,7 +31,7 @@ def _probe_gemini():
     try :
         model = GoogleGenerativeAIEmbeddings(
             model="gemini-embedding-2", 
-            google_api_key=settings.GOOGLE_API_KEY,
+            google_api_key=settings.GEMINI_API_KEY,
             output_dimensionality=_GEMINI_DIM,)
 
         # pass dim per call too: some langchain versions ignore the constructor arg
